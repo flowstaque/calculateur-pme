@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculateur de coût des tâches manuelles | Flowstaque</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #07070b;
+      --bg-card: #101018;
+      --bg-elevated: #171723;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-purple: rgba(139, 92, 246, 0.35);
+      --text-main: #f4f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --purple-primary: #8b5cf6;
+      --purple-hover: #7c3aed;
+      --purple-light: #c4b5fd;
+      --green-accent: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.09);
+      --green-border: rgba(16, 185, 129, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(circle at 18% 0%, rgba(139, 92, 246, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(109, 40, 217, 0.12) 0%, transparent 45%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2.25rem 1.25rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.38rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid var(--border-purple);
+      color: var(--purple-light);
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-bottom: 1.1rem;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--purple-primary);
+      box-shadow: 0 0 8px var(--purple-primary);
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.75rem, 3.8vw, 2.65rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      max-width: 760px;
+      margin: 0 auto 0.85rem;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .card-results {
+      background: linear-gradient(180deg, #13131f 0%, #0d0d14 100%);
+      border: 1px solid var(--border-purple);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .control-group {
+      padding-bottom: 1.6rem;
+      margin-bottom: 1.6rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .control-group:last-child {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .control-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+
+    .control-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .number-box {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.6rem;
+      padding: 0.35rem 0.65rem;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+
+    .number-box:focus-within {
+      border-color: var(--purple-primary);
+    }
+
+    .number-box input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      width: 3.1rem;
+      text-align: right;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    .number-box input::-webkit-outer-spin-button,
+    .number-box input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .number-unit {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-left: 0.35rem;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #222232;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--purple-primary);
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.7);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--purple-primary);
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.7);
+      cursor: pointer;
+    }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      margin-top: 0.45rem;
+    }
+
+    .daily-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .daily-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--purple-light);
+      background: rgba(139, 92, 246, 0.14);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      padding: 0.25rem 0.65rem;
+      border-radius: 0.45rem;
+    }
+
+    .presets {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .preset-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 0.32rem 0.62rem;
+      border-radius: 0.45rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--purple-primary);
+      color: var(--text-main);
+    }
+
+    .preset-btn.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--purple-primary);
+      color: var(--purple-light);
+    }
+
+    /* Results Column */
+    .result-eyebrow {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--purple-light);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .big-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.4rem, 5vw, 3.35rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      margin-bottom: 0.45rem;
+    }
+
+    .big-number span {
+      font-size: 1.35rem;
+      color: var(--purple-light);
+      font-weight: 600;
+    }
+
+    .result-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.35rem;
+    }
+
+    .analogies {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 480px) {
+      .analogies {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analogy-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.85rem;
+      padding: 0.95rem;
+    }
+
+    .analogy-icon {
+      font-size: 1.25rem;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+
+    .analogy-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+    }
+
+    .analogy-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .scenario-box {
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      border-radius: 0.85rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.4rem;
+      font-size: 0.88rem;
+      color: #d1fae5;
+      line-height: 1.5;
+    }
+
+    .scenario-box strong {
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .cta-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      width: 100%;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-hover) 100%);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.98rem;
+      text-decoration: none;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.38);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.5);
+    }
+
+    .cta-subtext {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.65rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    footer a {
+      color: var(--purple-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .share-link-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 0.45rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .share-link-btn:hover {
+      border-color: var(--purple-primary);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <header>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Simulateur PME Suisse • 100 % anonyme
+      </div>
+      <h1>Combien vous coûtent vraiment vos <span>tâches répétitives</span> ?</h1>
+      <p class="subtitle">
+        Estimez en 10 secondes le temps et le budget absorbés chaque année par le copier-coller, la saisie et l'administratif au sein de votre équipe.
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- COLONNE GAUCHE : PARAMÈTRES -->
+      <section class="card" aria-label="Paramètres de votre PME">
+        <!-- 1. Taille équipe -->
+        <div class="control-group">
+          <div class="control-header">
+            <div>
+              <div class="control-title">Taille de votre équipe</div>
+              <div class="control-desc">Collaborateurs concernés par des tâches administratives</div>
+            </div>
+            <div class="number-box">
+              <input type="number" id="teamInput" min="1" max="10" step="1" value="5" aria-label="Nombre de collaborateurs">
+              <span class="number-unit">pers.</span>
+            </div>
+          </div>
+          <input type="range" id="teamRange" min="1" max="10" step="1" value="5">
+          <div class="scale-labels">
+            <span>1 pers.</span>
+            <span>5 pers.</span>
+            <span>10 pers.</span>
+          </div>
+        </div>
+
+        <!-- 2. Heures manuelles -->
+        <div class="control-group">
+          <div class="control-header">
+            <div>
+              <div class="control-title">Tâches manuelles par personne</div>
+              <div class="control-desc">Emails, devis, facturation, relances, mise à jour CRM/Excel</div>
+            </div>
+            <div class="number-box">
+              <input type="number" id="hoursInput" min="0.5" max="20" step="0.5" value="5" aria-label="Heures par semaine">
+              <span class="number-unit">h / sem.</span>
+            </div>
+          </div>
+          <input type="range" id="hoursRange" min="0.5" max="20" step="0.5" value="5">
+          <div class="daily-badge-row">
+            <span class="daily-pill" id="dailyEquivalent">1h00 par jour</span>
+            <span style="font-size: 0.75rem; color: var(--text-dim);">Base : 5 jours ouvrés</span>
+          </div>
+          <div class="presets" id="presetButtons">
+            <button type="button" class="preset-btn" data-hours="2.5">30 min / jour</button>
+            <button type="button" class="preset-btn active" data-hours="5">1h / jour</button>
+            <button type="button" class="preset-btn" data-hours="7.5">1h30 / jour</button>
+            <button type="button" class="preset-btn" data-hours="10">2h / jour</button>
+          </div>
+        </div>
+
+        <!-- 3. Taux horaire -->
+        <div class="control-group">
+          <div class="control-header">
+            <div>
+              <div class="control-title">Taux horaire moyen</div>
+              <div class="control-desc">Combien vous coûte un employé par heure, charges comprises</div>
+            </div>
+            <div class="number-box">
+              <input type="number" id="rateInput" min="40" max="160" step="5" value="75" aria-label="Taux horaire en CHF">
+              <span class="number-unit">CHF / h</span>
+            </div>
+          </div>
+          <input type="range" id="rateRange" min="40" max="160" step="5" value="75">
+          <div class="scale-labels">
+            <span>40 CHF/h</span>
+            <span>80 CHF/h</span>
+            <span>160 CHF/h</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLONNE DROITE : RÉSULTATS -->
+      <section class="card card-results" aria-live="polite">
+        <div>
+          <div class="result-eyebrow">Coût annuel estimé</div>
+          <div class="big-number" id="annualCost">88'125 <span>CHF / an</span></div>
+          <div class="result-sub" id="annualHoursText">
+            Soit <strong>1'175 heures</strong> absorbées chaque année (base 47 semaines ouvrées).
+          </div>
+
+          <div class="analogies">
+            <div class="analogy-card">
+              <span class="analogy-icon">☕</span>
+              <div class="analogy-value" id="coffeeCount">19'583 cafés</div>
+              <div class="analogy-text">Cafés à 4.50 CHF partis en fumée</div>
+            </div>
+
+            <div class="analogy-card">
+              <span class="analogy-icon" id="tierIcon">💼</span>
+              <div class="analogy-value" id="tierTitle">1 salaire annuel</div>
+              <div class="analogy-text" id="tierDesc">Le salaire annuel d'un collaborateur dédié uniquement au copier-coller</div>
+            </div>
+          </div>
+
+          <div class="scenario-box">
+            <strong>Scénario réaliste :</strong> Pas besoin de tout révolutionner. En automatisant ne serait-ce que <strong>25 %</strong> de ces tâches, vous récupérez déjà <strong id="savedMoney">22'031 CHF</strong> et <strong id="savedHours">294 heures</strong> par an.
+          </div>
+        </div>
+
+        <div>
+          <a href="https://flowstaque.com/" target="_blank" rel="noopener noreferrer" class="cta-button" id="ctaLink">
+            Voyons comment on peut récupérer ce temps ensemble →
+          </a>
+          <div class="cta-subtext">
+            Diagnostic complet de vos flux • Identification des gains rapides pour votre PME
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <span>Créé par <a href="https://flowstaque.com/" target="_blank" rel="noopener noreferrer">Flowstaque</a> • Automatisation &amp; IA pour PME suisses</span>
+    <button type="button" class="share-link-btn" id="copyLinkBtn">Copier le lien avec ces chiffres</button>
+  </footer>
+
+  <script>
+    (function () {
+      const WEEKS_PER_YEAR = 47;
+      const COFFEE_PRICE = 4.5;
+
+      const teamRange = document.getElementById('teamRange');
+      const teamInput = document.getElementById('teamInput');
+      const hoursRange = document.getElementById('hoursRange');
+      const hoursInput = document.getElementById('hoursInput');
+      const rateRange = document.getElementById('rateRange');
+      const rateInput = document.getElementById('rateInput');
+
+      const dailyEquivalent = document.getElementById('dailyEquivalent');
+      const presetButtons = document.querySelectorAll('.preset-btn');
+
+      const annualCostEl = document.getElementById('annualCost');
+      const annualHoursTextEl = document.getElementById('annualHoursText');
+      const coffeeCountEl = document.getElementById('coffeeCount');
+      const tierIconEl = document.getElementById('tierIcon');
+      const tierTitleEl = document.getElementById('tierTitle');
+      const tierDescEl = document.getElementById('tierDesc');
+      const savedMoneyEl = document.getElementById('savedMoney');
+      const savedHoursEl = document.getElementById('savedHours');
+      const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+      function formatCHF(num) {
+        return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+      }
+
+      function formatDailyTime(weeklyHours) {
+        const dailyHours = weeklyHours / 5;
+        const totalMinutes = Math.round(dailyHours * 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        if (h === 0) return m + ' min par jour';
+        if (m === 0) return h + 'h00 par jour';
+        return h + 'h' + (m < 10 ? '0' + m : m) + ' par jour';
+      }
+
+      function getTierAnalogy(cost) {
+        if (cost < 10000) {
+          return {
+            icon: '🏔️',
+            title: 'Séjour équipe',
+            desc: "Un séjour d'entreprise à la montagne pour toute l'équipe"
+          };
+        }
+        if (cost < 20000) {
+          return {
+            icon: '🏢',
+            title: '1 an de loyer',
+            desc: 'Une année complète de loyer de bureau'
+          };
+        }
+        if (cost < 30000) {
+          return {
+            icon: '📈',
+            title: 'Budget croissance',
+            desc: 'Un budget marketing annuel complet pour développer votre clientèle'
+          };
+        }
+        if (cost < 50000) {
+          return {
+            icon: '🚗',
+            title: 'Véhicule neuf',
+            desc: 'Une voiture de fonction neuve chaque année'
+          };
+        }
+        if (cost <= 100000) {
+          return {
+            icon: '💼',
+            title: '1 salaire annuel',
+            desc: "Le salaire annuel d'un collaborateur dédié uniquement au copier-coller"
+          };
+        }
+        return {
+          icon: '👥',
+          title: 'Près de 2 salaires',
+          desc: "Presque deux salaires annuels à temps plein absorbés par l'administratif"
+        };
+      }
+
+      function updateSliderTrack(slider) {
+        const min = parseFloat(slider.min);
+        const max = parseFloat(slider.max);
+        const val = parseFloat(slider.value);
+        const pct = ((val - min) / (max - min)) * 100;
+        slider.style.background = `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${pct}%, #222232 ${pct}%, #222232 100%)`;
+      }
+
+      function updateURL(team, hours, rate) {
+        if (window.history && window.history.replaceState) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('team', team);
+          url.searchParams.set('hours', hours);
+          url.searchParams.set('rate', rate);
+          window.history.replaceState({}, '', url);
+        }
+      }
+
+      function recalculate() {
+        const team = Math.min(10, Math.max(1, parseFloat(teamRange.value) || 5));
+        const hours = Math.min(20, Math.max(0.5, parseFloat(hoursRange.value) || 5));
+        const rate = Math.min(160, Math.max(40, parseFloat(rateRange.value) || 75));
+
+        const totalHours = team * hours * WEEKS_PER_YEAR;
+        const totalCost = totalHours * rate;
+        const coffees = Math.round(totalCost / COFFEE_PRICE);
+        const savedCost25 = totalCost * 0.25;
+        const savedHours25 = totalHours * 0.25;
+
+        annualCostEl.innerHTML = `${formatCHF(totalCost)} <span>CHF / an</span>`;
+        annualHoursTextEl.innerHTML = `Soit <strong>${formatCHF(totalHours)} heures</strong> absorbées chaque année (base ${WEEKS_PER_YEAR} semaines ouvrées).`;
+        dailyEquivalent.textContent = formatDailyTime(hours);
+
+        coffeeCountEl.textContent = `${formatCHF(coffees)} cafés`;
+
+        const tier = getTierAnalogy(totalCost);
+        tierIconEl.textContent = tier.icon;
+        tierTitleEl.textContent = tier.title;
+        tierDescEl.textContent = tier.desc;
+
+        savedMoneyEl.textContent = `${formatCHF(savedCost25)} CHF`;
+        savedHoursEl.textContent = `${formatCHF(savedHours25)} heures`;
+
+        presetButtons.forEach((btn) => {
+          const btnHours = parseFloat(btn.dataset.hours);
+          btn.classList.toggle('active', Math.abs(btnHours - hours) < 0.01);
+        });
+
+        updateSliderTrack(teamRange);
+        updateSliderTrack(hoursRange);
+        updateSliderTrack(rateRange);
+        updateURL(team, hours, rate);
+      }
+
+      function bindPair(rangeEl, inputEl, min, max) {
+        rangeEl.addEventListener('input', () => {
+          inputEl.value = rangeEl.value;
+          recalculate();
+        });
+
+        inputEl.addEventListener('input', () => {
+          let val = parseFloat(inputEl.value);
+          if (!isNaN(val)) {
+            if (val > max) val = max;
+            if (val >= min) {
+              rangeEl.value = val;
+              recalculate();
+            }
+          }
+        });
+
+        inputEl.addEventListener('blur', () => {
+          let val = parseFloat(inputEl.value);
+          if (isNaN(val) || val < min) val = min;
+          if (val > max) val = max;
+          inputEl.value = val;
+          rangeEl.value = val;
+          recalculate();
+        });
+      }
+
+      presetButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = parseFloat(btn.dataset.hours);
+          hoursRange.value = val;
+          hoursInput.value = val;
+          recalculate();
+        });
+      });
+
+      copyLinkBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          const original = copyLinkBtn.textContent;
+          copyLinkBtn.textContent = 'Lien copié !';
+          setTimeout(() => {
+            copyLinkBtn.textContent = original;
+          }, 2000);
+        });
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('team')) {
+        const t = Math.min(10, Math.max(1, parseInt(params.get('team'), 10) || 5));
+        teamRange.value = t;
+        teamInput.value = t;
+      }
+      if (params.has('hours')) {
+        const h = Math.min(20, Math.max(0.5, parseFloat(params.get('hours')) || 5));
+        hoursRange.value = h;
+        hoursInput.value = h;
+      }
+      if (params.has('rate')) {
+        const r = Math.min(160, Math.max(40, parseInt(params.get('rate'), 10) || 75));
+        rateRange.value = r;
+        rateInput.value = r;
+      }
+
+      bindPair(teamRange, teamInput, 1, 10);
+      bindPair(hoursRange, hoursInput, 0.5, 20);
+      bindPair(rateRange, rateInput, 40, 160);
+
+      recalculate();
+    })();
+  </script>
+</body>
+</html>
